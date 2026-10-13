@@ -15,6 +15,16 @@ Add new entries at the top using this template:
 - Follow-up: none, or exact remaining work
 ```
 
+## 2026-10-13 — Restore confirmed credit-card tender after close review
+
+- Agent: Codex
+- Scope: one production POS Bill on business day 2026-10-12, its closed-shift tender summary, and the associated manager-review record
+- Decision: the ฿180 Bill and customer payment were confirmed complete, but the payment row was missing; restore one ฿180 card tender, preserve the original Bill total and paid timestamp, update only the closed shift's card-method total, and retain the original mismatch evidence as a reviewed audit record
+- Verification: authoritative production reads show Bill paid ฿180, one card payment totaling ฿180, order closed, shift closed with card total ฿180, zero pending close-review records, and no existing 2026-10-12 Daily Sales import in Manager App requiring correction
+- Git: `codex/repair-card-tender-20261013`; see the commit containing this entry
+- Delivery: guarded production data repair completed; no application code, schema, Lovable publish, Android build, or SUNMI update was required
+- Follow-up: none
+
 ## 2026-10-10 — Remove duplicate standalone crispy-pork water mimosa
 
 - Agent: Codex
