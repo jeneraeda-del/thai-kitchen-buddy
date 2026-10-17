@@ -15,6 +15,16 @@ Add new entries at the top using this template:
 - Follow-up: none, or exact remaining work
 ```
 
+## 2026-10-16 — Route Side / Extra items to the kitchen printer
+
+- Agent: Codex
+- Scope: POS and customer-QR order ticket routing, Side / Extra category zone assignment, routing regression guard, and Android release
+- Decision: make explicit kitchen-zone assignments override legacy name-based front-counter fallbacks and assign `➕ เครื่องเคียง / EXTRA` to Main Kitchen, so its seven side items print in the kitchen while remaining on the counter FOOD checklist
+- Verification: dedicated Extra routing guard, full regression suite, production web build, Android build, production category readback, and deployed-asset inspection; physical SUNMI ticket verification remains the exact follow-up below
+- Git: `codex/route-extra-to-kitchen-20261016`; see the commits containing this entry
+- Delivery: pending merge, production migration, Lovable publish, Android v1.1.89 release, and physical SUNMI ticket test
+- Follow-up: order one Extra item on SUNMI and confirm it prints once in the kitchen and once on the counter FOOD checklist
+
 ## 2026-10-13 — Restore confirmed credit-card tender after close review
 
 - Agent: Codex

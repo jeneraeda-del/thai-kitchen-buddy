@@ -2,6 +2,7 @@ type CategoryRoute = {
   id?: string | null;
   name_th?: string | null;
   name_en?: string | null;
+  kitchen_zone_id?: string | null;
 };
 
 const FRONT_CATEGORY_IDS = new Set([
@@ -54,9 +55,15 @@ const FRONT_CATEGORY_TOKENS = new Set([
   "แอลกอฮอล์",
 ]);
 
-/** These categories are always prepared at the front counter. */
+/**
+ * Legacy fallback for categories that have not been assigned to a zone yet.
+ * An explicit zone assignment is authoritative; its print_to_kitchen flag is
+ * evaluated by the caller.
+ */
 export function isFrontCounterCategory(category?: CategoryRoute | null) {
   if (!category) return false;
+
+  if (category.kitchen_zone_id) return false;
 
   if (category.id && FRONT_CATEGORY_IDS.has(category.id.toLowerCase())) {
     return true;
