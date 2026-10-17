@@ -21,8 +21,8 @@ Add new entries at the top using this template:
 - Scope: POS and customer-QR order ticket routing, Side / Extra category zone assignment, routing regression guard, and Android release
 - Decision: make explicit kitchen-zone assignments override legacy name-based front-counter fallbacks and assign `➕ เครื่องเคียง / EXTRA` to Main Kitchen, so its seven side items print in the kitchen while remaining on the counter FOOD checklist
 - Verification: dedicated Extra routing guard, full regression suite, production web build, Android build, production category readback, and deployed-asset inspection; physical SUNMI ticket verification remains the exact follow-up below
-- Git: `codex/route-extra-to-kitchen-20261016`; see the commits containing this entry
-- Delivery: pending merge, production migration, Lovable publish, Android v1.1.89 release, and physical SUNMI ticket test
+- Git: PR #78, merge commit `62c52dbe9dbec3dd88846097916b627e65d9c918`
+- Delivery: production category mapped to Main Kitchen; Lovable deployment `31eada94-2852-489c-b5a9-0d72487894d3` published from the merge commit; Android v1.1.89 released with matching signing certificate and SHA-256 `58c6c3d530807a9d8832b69790c59af14ff017ac7eab3862d61579be57a4ae3f`; physical SUNMI ticket test remains
 - Follow-up: order one Extra item on SUNMI and confirm it prints once in the kitchen and once on the counter FOOD checklist
 
 ## 2026-10-13 — Restore confirmed credit-card tender after close review
