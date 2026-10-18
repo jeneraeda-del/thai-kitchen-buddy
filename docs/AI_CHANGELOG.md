@@ -15,6 +15,16 @@ Add new entries at the top using this template:
 - Follow-up: none, or exact remaining work
 ```
 
+## 2026-10-17 — Recover confirmed T15 QR payment from close review
+
+- Agent: Codex
+- Scope: one production POS order on business day 2026-10-16, its Bill/QR tender, saved Z-report totals, receipt number, and manager-review record
+- Decision: Tony confirmed that T15's 2 salted eggs plus 3 rice soups were paid by QR; reconstruct one ฿66 paid Bill and one QR payment through the normal payment/finalization triggers, update only the affected saved Z totals, and retain the original warning as a reviewed audit record
+- Verification: authoritative production reads show exactly one ฿66 Bill, exactly one ฿66 QR payment, receipt `LM20261017029`, closed order and shift, Z gross ฿11,296, net ฿11,031, QR ฿7,787, 33 Bills, late QR bucket ฿2,921 across 7 payments, and zero pending close-review records
+- Git: `codex/repair-qr-tender-20261016`; see the commit containing this entry
+- Delivery: guarded production data repair completed; no application code, schema, Lovable publish, or Android update was required
+- Follow-up: if Manager App Daily Sales for 2026-10-16 was imported before this repair, import that POS day again so it receives the corrected totals
+
 ## 2026-10-16 — Route Side / Extra items to the kitchen printer
 
 - Agent: Codex
