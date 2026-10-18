@@ -25,6 +25,12 @@ Add new entries at the top using this template:
 - Delivery: source checkpoint only; production function/web/APK deployment and live verification pending. No production menu availability was changed during development.
 - Follow-up: finish validation, publish receiver/frontend, and report device delivery separately.
 
+### Availability fix — validated source checkpoint
+
+- The executable receiver tests pass for all POS/QR flag combinations, concurrent staff pause/reopen, repeated publishes, legacy-ID/name matching, new/hidden/SET-child menus, dry runs, denied writes and disappearing target rows. Device tests pass for request sharing, freshness, local pause, stale-response rejection, offline failure/recovery and subsequent same-launch refreshes. The full build-enforced regression suite and production web build pass using the committed `bun.lock` (`bun install --frozen-lockfile`); the older npm lock is out of sync and was left unchanged.
+- Repository-wide TypeScript and targeted lint still report pre-existing errors in unchanged reporting/receipt code and an unchanged settings expression. No application dependencies or unrelated generated routing files are included in this fix.
+- Direct HTTPS push to the canonical Tony repository is denied for the connected `jeneraeda-del` account. A same-name feature branch was pushed to its GitHub fork and linked as canonical PR #81 so the source is reviewable and shared. Deployment remains pending at this checkpoint.
+
 ## 2026-10-17 — Recover confirmed T15 QR payment from close review
 
 - Agent: Codex
