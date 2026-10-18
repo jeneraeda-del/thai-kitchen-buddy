@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "guard:ai-protocol": "node scripts/check-ai-collaboration-protocol.mjs",
+    "verify:menu-availability": "node scripts/verify-menu-publish-availability.mjs",
     "verify:business-hours": "node scripts/verify-business-hour-order.mjs",
     "verify:date-range": "node scripts/verify-date-range-selection.mjs",
     "verify:regressions": "npm run guard:ai-protocol && bash scripts/verify-no-direct-print.sh && bash scripts/verify-bangkok-time.sh && node scripts/verify-print-byte-assembly.mjs && node scripts/verify-receipt-layout.mjs && node scripts/verify-z-report-business-day.mjs && node scripts/verify-operational-integrity-ui.mjs && node scripts/verify-kbank-settlement.mjs && node scripts/verify-member-discount-accounting.mjs && node scripts/verify-paid-checkout-completion.mjs && node scripts/verify-terminal-only-loyalty.mjs && node scripts/verify-receipt-number-invoice.mjs && node scripts/verify-customer-receipts.mjs && node scripts/verify-app-update.mjs && node scripts/verify-menu-channel-visibility.mjs && node scripts/verify-extra-kitchen-routing.mjs && npm run verify:business-hours && npm run verify:date-range",

@@ -48,6 +48,7 @@ import {
   KeyRound,
 } from "lucide-react";
 import { toast } from "sonner";
+import { refreshPosCatalog, updateCachedMenuAvailability } from "@/lib/pos-assets";
 import { makeDriver, printInDedicatedDocument, type DriverId } from "@/lib/print/PrintService";
 import {
   canPrintDirect,
@@ -2467,21 +2468,28 @@ function MenuTab() {
       // row. Creating a new row here produced an unlinked duplicate every time
       // an operator added an add-on to a Manager menu.
       if (!edit.manager_menu_id) {
-        await db.from("menus").update(payload).eq("id", menuId);
+        const { error } = await db.from("menus").update(payload).eq("id", menuId).select("id").single();
+        if (error) { toast.error(`Menu was not saved: ${error.message}`); return; }
       } else {
         // Availability is owned by the shop. Catalog-owned name, price, image,
         // recipe and category fields remain read-only on the POS.
-        await db
+        const { error } = await db
           .from("menus")
           .update({
             available: payload.available,
             available_qr: payload.available_qr,
           })
-          .eq("id", menuId);
+          .eq("id", menuId).select("id").single();
+        if (error) { toast.error(`Availability was not changed: ${error.message}`); return; }
       }
     } else {
       const { data: inserted } = await db.from("menus").insert(payload).select("id").single();
       menuId = inserted?.id;
+    }
+
+    if (menuId) {
+      updateCachedMenuAvailability(menuId, payload.available);
+      void refreshPosCatalog(true).catch(() => toast.warning("Menu saved. Refresh the POS when connected to load the latest menu."));
     }
 
     // Save ingredient rows
@@ -2613,11 +2621,13 @@ function MenuTab() {
     const { error } = await supabase
       .from("menus")
       .update({ available: nextAvailable })
-      .eq("id", m.id);
+      .eq("id", m.id).select("id").single();
     if (error) {
       toast.error(`Availability was not changed: ${error.message}`);
       return;
     }
+    updateCachedMenuAvailability(m.id, nextAvailable);
+    void refreshPosCatalog(true).catch(() => toast.warning("Sale status saved. Refresh the POS when connected to load the latest menu."));
     await load();
     toast.success(nextAvailable ? "Menu is back on sale" : "Menu is stopped until staff turns it on");
   };

@@ -280,12 +280,12 @@ Deno.serve(async (req) => {
 
     const menuMappings: Array<{ managerId: string; posId: string }> = [];
     const menuRows: any[] = [];
+    const menuUpdates: Array<{ id: string; fields: Record<string, unknown> }> = [];
     for (const [index, item] of menuPlan.entries()) {
       if (item.action === "skip") continue;
       const menu = item.source;
       const id = item.target?.id ?? crypto.randomUUID();
-      menuRows.push({
-        id,
+      const fields = {
         manager_menu_id: menu.id,
         category_id: categoryIdByName.get(normalize(menu.category || "ทั่วไป")) ?? null,
         name_th: menu.name_th,
@@ -294,27 +294,35 @@ Deno.serve(async (req) => {
         price: Number(menu.selling_price),
         cost: Number(menu.food_cost ?? 0),
         image_url: menu.image_url || null,
-        // POS availability is an operational switch owned by shop staff. Once
-        // a menu exists, catalog publishes (price/cost/name/recipe changes)
-        // must never undo a staff member's sold-out/on-sale decision. Manager
-        // availability is used only to initialize a brand-new POS row.
-        available:
-          item.target?.available ??
-          (menu.is_active !== false && menu.available_pos !== false && menu.is_set_child !== true),
-        // Like POS availability, customer visibility is controlled by shop
-        // staff after the first publish. Future catalog publishes preserve it.
-        available_qr:
-          item.target?.available_qr ??
-          (menu.is_active !== false && menu.available_qr !== false && menu.is_set_child !== true),
         is_set: menu.is_set === true,
         is_set_child: menu.is_set_child === true,
         sort: menu.sort_order ?? index,
-      });
+      };
+      if (item.target) {
+        // Never write staff-owned availability, even from our earlier snapshot:
+        // staff may have paused a menu while this publish was in flight.
+        menuUpdates.push({ id, fields });
+      } else {
+        menuRows.push({
+          id,
+          ...fields,
+          available: menu.is_active !== false && menu.available_pos !== false && menu.is_set_child !== true,
+          available_qr: menu.is_active !== false && menu.available_qr !== false && menu.is_set_child !== true,
+        });
+      }
       menuMappings.push({ managerId: menu.id, posId: id });
     }
     if (menuRows.length > 0) {
-      const { error } = await db.from("menus").upsert(menuRows, { onConflict: "id" });
-      if (error) throw new Error(`menus upsert: ${errorMessage(error)}`);
+      const { error } = await db.from("menus").insert(menuRows);
+      if (error) throw new Error(`menus insert: ${errorMessage(error)}`);
+    }
+    // Bounded updates keep existing IDs and cannot recreate a deleted row or
+    // overwrite an availability change made during publication.
+    for (let start = 0; start < menuUpdates.length; start += 8) {
+      await Promise.all(menuUpdates.slice(start, start + 8).map(async ({ id, fields }) => {
+        const { error } = await db.from("menus").update(fields).eq("id", id).select("id").single();
+        if (error) throw new Error(`menu ${id} update: ${errorMessage(error)}`);
+      }));
     }
 
     const groupByName = new Map(

@@ -1,11 +1,70 @@
 import { supabase } from "@/integrations/supabase/client";
-import { writeDeviceCache } from "@/lib/device-cache";
+import { readDeviceCache, writeDeviceCache } from "@/lib/device-cache";
 
 const CATALOG_CACHE_KEY = "lonmoh:pos:catalog:v1";
 const IMAGE_CACHE = "lonmoh-pos-menu-images-v1";
 const objectUrls = new Map<string, string>();
 const resolving = new Map<string, Promise<string>>();
 let syncedThisLaunch = false;
+let catalogRevision = 0;
+let catalogRefreshedAt = 0;
+let catalogRefresh: Promise<void> | null = null;
+const catalogListeners = new Set<() => void>();
+const CATALOG_MAX_AGE_MS = 15_000;
+
+export function subscribePosCatalog(listener: () => void) {
+  catalogListeners.add(listener);
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === CATALOG_CACHE_KEY) {
+      catalogRevision += 1;
+      catalogRefreshedAt = 0;
+      listener();
+    }
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    catalogListeners.delete(listener);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+// Apply a successful staff pause immediately, including when a catalog request
+// started before the pause. That older response must not restore the menu.
+export function updateCachedMenuAvailability(id: string, available: boolean) {
+  catalogRevision += 1;
+  catalogRefreshedAt = 0;
+  const catalog = readDeviceCache<{ menus: Array<{ id: string }>; categories: unknown[]; settings: unknown }>(CATALOG_CACHE_KEY);
+  if (catalog && !available) {
+    writeDeviceCache(CATALOG_CACHE_KEY, { ...catalog, menus: catalog.menus.filter((menu) => menu.id !== id) });
+    catalogListeners.forEach((listener) => listener());
+  }
+}
+
+export function refreshPosCatalog(force = false): Promise<void> {
+  if (catalogRefresh) return catalogRefresh;
+  if (!force && catalogRefreshedAt && Date.now() - catalogRefreshedAt < CATALOG_MAX_AGE_MS) {
+    return Promise.resolve();
+  }
+  catalogRefresh = (async () => {
+    for (;;) {
+      const revision = catalogRevision;
+      const [{ data: menus, error: menuError }, { data: categories, error: categoryError }, { data: settings, error: settingsError }] = await Promise.all([
+        supabase.from("menus").select("*").eq("available", true).order("sort"),
+        supabase.from("categories").select("*").order("sort"),
+        supabase.from("settings").select("vat_enabled,vat_mode,vat_rate,service_fee_rate,rounding_mode,max_discount_percent,restaurant_name,receipt_logo_url").eq("id", 1).single(),
+      ]);
+      const error = menuError ?? categoryError ?? settingsError;
+      if (error || !menus || !categories || !settings) throw error ?? new Error("Menu sync failed");
+      if (revision !== catalogRevision) continue;
+      const used = new Set(menus.map((menu) => menu.category_id).filter(Boolean));
+      writeDeviceCache(CATALOG_CACHE_KEY, { menus, categories: categories.filter((category) => used.has(category.id)), settings });
+      catalogRefreshedAt = Date.now();
+      catalogListeners.forEach((listener) => listener());
+      return;
+    }
+  })().finally(() => { catalogRefresh = null; });
+  return catalogRefresh;
+}
 
 export type AssetProgress = { done: number; total: number; stage: "catalog" | "images" };
 
@@ -17,22 +76,13 @@ export async function syncPosAssets(
   onProgress?: (progress: AssetProgress) => void,
   options: SyncPosAssetOptions = {},
 ) {
+  onProgress?.({ done: 0, total: 1, stage: "catalog" });
+  await refreshPosCatalog();
   if (syncedThisLaunch) {
     onProgress?.({ done: 1, total: 1, stage: "images" });
     return;
   }
-  onProgress?.({ done: 0, total: 1, stage: "catalog" });
-  const [{ data: menus, error: menuError }, { data: categories, error: categoryError }, { data: settings, error: settingsError }] = await Promise.all([
-    supabase.from("menus").select("*").eq("available", true).order("sort"),
-    supabase.from("categories").select("*").order("sort"),
-    supabase.from("settings").select("vat_enabled,vat_mode,vat_rate,service_fee_rate,rounding_mode,max_discount_percent,restaurant_name,receipt_logo_url").eq("id", 1).single(),
-  ]);
-  const error = menuError ?? categoryError ?? settingsError;
-  if (error || !menus || !categories || !settings) throw error ?? new Error("Menu sync failed");
-
-  const used = new Set(menus.map((menu) => menu.category_id).filter(Boolean));
-  const usedCategories = categories.filter((category) => used.has(category.id));
-  writeDeviceCache(CATALOG_CACHE_KEY, { menus, categories: usedCategories, settings });
+  const menus = readDeviceCache<{ menus: Array<{ image_url: string | null }> }>(CATALOG_CACHE_KEY)?.menus ?? [];
 
   const urls = [...new Set(menus.map((menu) => menu.image_url).filter((url): url is string => Boolean(url)))];
   // Browser POS only needs the small catalog snapshot. Preloading every image is

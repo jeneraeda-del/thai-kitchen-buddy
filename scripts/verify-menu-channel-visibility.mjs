@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import "./verify-menu-publish-availability.mjs";
 
 const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const settings = read("src/routes/_app/settings.tsx");
@@ -15,6 +16,8 @@ requireText(settings, "Customer QR menu", "separate customer QR control");
 requireText(settings, "available_qr: payload.available_qr", "linked-menu QR persistence");
 requireText(menuApi, '.eq("available_qr", true)', "QR menu visibility filter");
 requireText(orderApi, "!m.available_qr", "server-side QR order visibility check");
-requireText(sync, "item.target?.available_qr", "catalog publish visibility preservation");
+requireText(sync, "menuUpdates.push({ id, fields })", "catalog-only updates for existing menus");
+requireText(sync, '.update(fields).eq("id", id).select("id").single()', "existing-row update without availability or recreation");
+requireText(settings, "updateCachedMenuAvailability(m.id, nextAvailable)", "immediate staff availability cache update");
 
 console.log("Menu channel visibility regression checks passed.");
