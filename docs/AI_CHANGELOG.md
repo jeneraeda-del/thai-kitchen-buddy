@@ -15,6 +15,22 @@ Add new entries at the top using this template:
 - Follow-up: none, or exact remaining work
 ```
 
+## 2026-10-18 — Preserve staff menu availability during Manager publication
+
+- Agent: Codex
+- Scope: catalog receiver, POS device catalog refresh, staff menu availability controls, and build-enforced availability regression tests.
+- Decision: existing POS menus receive catalog-only UPDATEs that omit both availability fields, so a staff pause or reopen during publication cannot be overwritten by an earlier snapshot. New rows alone receive Manager initial visibility. Missing existing targets fail instead of recreating an open menu. Staff pauses immediately invalidate the device snapshot; active order screens refresh on resume, reconnect and every 30 seconds, with explicit offline warnings and retries.
+- Verification: implementation checkpoint; executable isolated Edge Function and device-cache tests added, full regression suite and production build pending.
+- Git: `codex/diagnose-menu-publish-availability`; see the commit containing this entry.
+- Delivery: source checkpoint only; production function/web/APK deployment and live verification pending. No production menu availability was changed during development.
+- Follow-up: finish validation, publish receiver/frontend, and report device delivery separately.
+
+### Availability fix — validated source checkpoint
+
+- The executable receiver tests pass for all POS/QR flag combinations, concurrent staff pause/reopen, repeated publishes, legacy-ID/name matching, new/hidden/SET-child menus, dry runs, denied writes and disappearing target rows. Device tests pass for request sharing, freshness, local pause, stale-response rejection, offline failure/recovery and subsequent same-launch refreshes. The full build-enforced regression suite and production web build pass using the committed `bun.lock` (`bun install --frozen-lockfile`); the older npm lock is out of sync and was left unchanged.
+- Repository-wide TypeScript and targeted lint still report pre-existing errors in unchanged reporting/receipt code and an unchanged settings expression. No application dependencies or unrelated generated routing files are included in this fix.
+- Direct HTTPS push to the canonical Tony repository is denied for the connected `jeneraeda-del` account. A same-name feature branch was pushed to its GitHub fork and linked as canonical PR #81 so the source is reviewable and shared. Deployment remains pending at this checkpoint.
+
 ## 2026-10-17 — Recover confirmed T15 QR payment from close review
 
 - Agent: Codex

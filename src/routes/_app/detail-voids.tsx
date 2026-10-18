@@ -93,7 +93,7 @@ function VoidsDetail() {
             closedByName: (o as any).closed_by ? (staffMap.get((o as any).closed_by) ?? "—") : "—",
             total: totMap.get(o.id) ?? 0,
             items: itemsMap.get(o.id) ?? [],
-            businessDay: shiftDays.get(o.shift_id) ?? "unknown",
+            businessDay: shiftDays.get(o.shift_id ?? "") ?? "unknown",
           })));
         } else { setCancelled([]); }
 
@@ -146,7 +146,7 @@ function VoidsDetail() {
               amount: Number(v.amount),
               voidedAt: v.created_at ?? null,
               voidedByName: v.voided_by ? (staffMap.get(v.voided_by) ?? "—") : "—",
-              businessDay: shiftDays.get(v.shift_id) ?? "unknown",
+              businessDay: shiftDays.get(v.shift_id ?? "") ?? "unknown",
             };
           }));
         } else { setVoidItems([]); }

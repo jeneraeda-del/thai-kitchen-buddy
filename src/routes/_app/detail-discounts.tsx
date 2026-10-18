@@ -172,7 +172,7 @@ function DiscountsDetail() {
               tableCode: getTableCode(b.id),
               billId: b.id,
               appliedAt: b.paid_at ?? "",
-              businessDay: shiftDays.get(b.shift_id) ?? "unknown",
+              businessDay: shiftDays.get(b.shift_id ?? "") ?? "unknown",
             });
           }
 
@@ -187,7 +187,7 @@ function DiscountsDetail() {
               tableCode: getTableCode(b.id),
               billId: b.id,
               appliedAt: b.paid_at ?? "",
-              businessDay: shiftDays.get(b.shift_id) ?? "unknown",
+              businessDay: shiftDays.get(b.shift_id ?? "") ?? "unknown",
             });
           }
         }

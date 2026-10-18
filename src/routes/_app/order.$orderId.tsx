@@ -19,7 +19,7 @@ import { isOffline } from "@/lib/online-status";
 import { tableLabel } from "@/lib/table";
 import { publicBaseUrl } from "@/lib/public-url";
 import { readDeviceCache } from "@/lib/device-cache";
-import { resolveMenuImage } from "@/lib/pos-assets";
+import { refreshPosCatalog, resolveMenuImage, subscribePosCatalog } from "@/lib/pos-assets";
 import { toast } from "sonner";
 import { localizeError } from "@/lib/localized-error";
 
@@ -222,9 +222,39 @@ function OrderPage() {
   const [itemDiscValue, setItemDiscValue] = useState(0);
   const [itemDiscReason, setItemDiscReason] = useState("");
 
-  // The app shell synchronizes the entire catalog before allowing staff into
-  // the POS. Every table therefore paints from the same device snapshot instead
-  // of repeating three catalog queries on every table transition.
+  // Retain the fast device snapshot while refreshing staff availability in the
+  // background. Focus/reconnect and periodic checks also catch other devices.
+  useEffect(() => {
+    const applyCatalog = () => {
+      const catalog = readDeviceCache<CatalogCache>(CATALOG_CACHE_KEY);
+      if (!catalog) return;
+      setMenus(catalog.menus);
+      setCats(catalog.categories);
+      setSelected((current) => current && !catalog.menus.some((menu) => menu.id === current.id) ? null : current);
+    };
+    const refresh = (force = false) => {
+      if (document.visibilityState === "hidden") return;
+      void refreshPosCatalog(force).catch(() => {
+        toast.warning(lang === "th" ? "อัปเดตเมนูไม่สำเร็จ กำลังใช้ข้อมูลที่บันทึกไว้" : "Menu refresh failed. Using saved menu data.", { id: "pos-catalog-refresh" });
+      });
+    };
+    const onResume = () => refresh(true);
+    const unsubscribe = subscribePosCatalog(applyCatalog);
+    applyCatalog();
+    refresh();
+    window.addEventListener("focus", onResume);
+    window.addEventListener("online", onResume);
+    document.addEventListener("visibilitychange", onResume);
+    const timer = window.setInterval(() => refresh(true), 30_000);
+    return () => {
+      unsubscribe();
+      window.clearInterval(timer);
+      window.removeEventListener("focus", onResume);
+      window.removeEventListener("online", onResume);
+      document.removeEventListener("visibilitychange", onResume);
+    };
+  }, [lang]);
+
   useEffect(() => {
     const s = cachedCatalog?.settings;
     if (!s) return;
