@@ -19,6 +19,7 @@ import { useNativePrintQueue } from "@/lib/native-print-queue";
 import { syncPosAssets, type AssetProgress } from "@/lib/pos-assets";
 import { Capacitor } from "@capacitor/core";
 import { isNativeApp } from "@/lib/print/native-printer";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_app")({ component: AppLayout });
 
@@ -50,10 +51,13 @@ function AppLayout() {
       (progress) => { if (!cancelled) setAssetProgress(progress); },
       { preloadImages: Capacitor.isNativePlatform() },
     )
-      .catch((error) => console.error("POS asset sync failed", error))
+      .catch((error) => {
+        console.error("POS asset sync failed", error);
+        toast.warning(lang === "th" ? "อัปเดตเมนูไม่สำเร็จ กำลังใช้ข้อมูลที่บันทึกไว้" : "Menu refresh failed. Using saved menu data.", { id: "pos-catalog-refresh" });
+      })
       .finally(() => { if (!cancelled) setAssetsReady(true); });
     return () => { cancelled = true; };
-  }, [session, staff, needsPosAssets, assetsReady]);
+  }, [session, staff, needsPosAssets, assetsReady, lang]);
 
   useEffect(() => {
     const section = path === "/live"

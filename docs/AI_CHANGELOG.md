@@ -15,6 +15,16 @@ Add new entries at the top using this template:
 - Follow-up: none, or exact remaining work
 ```
 
+## 2026-10-18 — Preserve staff menu availability during Manager publication
+
+- Agent: Codex
+- Scope: catalog receiver, POS device catalog refresh, staff menu availability controls, and build-enforced availability regression tests.
+- Decision: existing POS menus receive catalog-only UPDATEs that omit both availability fields, so a staff pause or reopen during publication cannot be overwritten by an earlier snapshot. New rows alone receive Manager initial visibility. Missing existing targets fail instead of recreating an open menu. Staff pauses immediately invalidate the device snapshot; active order screens refresh on resume, reconnect and every 30 seconds, with explicit offline warnings and retries.
+- Verification: implementation checkpoint; executable isolated Edge Function and device-cache tests added, full regression suite and production build pending.
+- Git: `codex/diagnose-menu-publish-availability`; see the commit containing this entry.
+- Delivery: source checkpoint only; production function/web/APK deployment and live verification pending. No production menu availability was changed during development.
+- Follow-up: finish validation, publish receiver/frontend, and report device delivery separately.
+
 ## 2026-10-17 — Recover confirmed T15 QR payment from close review
 
 - Agent: Codex
