@@ -280,7 +280,7 @@ function ReceiptsPage() {
           : emptyBuyer,
       );
     } catch (error) {
-      toast.error(localizeError(error, lang, "receipt"));
+      toast.error(localizeError(error, lang, "load"));
     } finally {
       setLoading(false);
     }
@@ -335,7 +335,7 @@ function ReceiptsPage() {
       toast.success(copy("บันทึกใบเสร็จแล้ว", "Receipt saved"));
       return true;
     } catch (error) {
-      toast.error(localizeError(error, lang, "receipt"));
+      toast.error(localizeError(error, lang, "save"));
       return false;
     } finally {
       setSaving(false);

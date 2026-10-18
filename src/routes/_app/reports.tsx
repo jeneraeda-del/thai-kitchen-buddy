@@ -303,7 +303,7 @@ ${sections.map((section) => `<h2>${escapeHtml(section.title)}</h2><table>${htmlR
 
 function Reports() {
   const { staff } = useAuth();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [shift, setShift] = useState<Shift | null>(null);
   const [report, setReport] = useState<ReportData | null>(null);
   const [xDlg, setXDlg] = useState(false);

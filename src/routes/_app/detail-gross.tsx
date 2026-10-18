@@ -72,7 +72,7 @@ function GrossSalesDetail() {
 
         setBills(b.map((bill) => ({
           ...bill,
-          businessDay: shiftDays.get(bill.shift_id) ?? "unknown",
+          businessDay: shiftDays.get(bill.shift_id ?? "") ?? "unknown",
         })) as BillRow[]);
 
         const orderIds = [...new Set(b.map(x => x.order_id).filter(Boolean))] as string[];
