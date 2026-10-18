@@ -1794,7 +1794,29 @@ export type Database = {
             referencedRelation: "staff"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "receipt_documents_issued_by_fkey"
+            columns: ["issued_by"]
+            isOneToOne: false
+            referencedRelation: "staff_public"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      receipt_number_counters: {
+        Row: {
+          last_value: number
+          receipt_date: string
+        }
+        Insert: {
+          last_value: number
+          receipt_date: string
+        }
+        Update: {
+          last_value?: number
+          receipt_date?: string
+        }
+        Relationships: []
       }
       refund_items: {
         Row: {
@@ -1966,12 +1988,12 @@ export type Database = {
           gov_qr_government_percent: number
           gov_qr_label: string
           id: number
+          legal_name_en: string | null
+          legal_name_th: string | null
           loyalty_enabled: boolean
           loyalty_points_expire_months: number
           loyalty_points_per_baht: number
           loyalty_signup_bonus: number
-          legal_name_en: string | null
-          legal_name_th: string | null
           max_discount_percent: number
           printer_counter_ip: string | null
           printer_kitchen_ip: string | null
@@ -1984,9 +2006,9 @@ export type Database = {
           starting_cash: number
           updated_at: string
           vat_enabled: boolean
-          vat_registered: boolean
           vat_mode: Database["public"]["Enums"]["vat_mode"]
           vat_rate: number
+          vat_registered: boolean
         }
         Insert: {
           address?: string | null
@@ -1999,12 +2021,12 @@ export type Database = {
           gov_qr_government_percent?: number
           gov_qr_label?: string
           id?: number
+          legal_name_en?: string | null
+          legal_name_th?: string | null
           loyalty_enabled?: boolean
           loyalty_points_expire_months?: number
           loyalty_points_per_baht?: number
           loyalty_signup_bonus?: number
-          legal_name_en?: string | null
-          legal_name_th?: string | null
           max_discount_percent?: number
           printer_counter_ip?: string | null
           printer_kitchen_ip?: string | null
@@ -2017,9 +2039,9 @@ export type Database = {
           starting_cash?: number
           updated_at?: string
           vat_enabled?: boolean
-          vat_registered?: boolean
           vat_mode?: Database["public"]["Enums"]["vat_mode"]
           vat_rate?: number
+          vat_registered?: boolean
         }
         Update: {
           address?: string | null
@@ -2032,12 +2054,12 @@ export type Database = {
           gov_qr_government_percent?: number
           gov_qr_label?: string
           id?: number
+          legal_name_en?: string | null
+          legal_name_th?: string | null
           loyalty_enabled?: boolean
           loyalty_points_expire_months?: number
           loyalty_points_per_baht?: number
           loyalty_signup_bonus?: number
-          legal_name_en?: string | null
-          legal_name_th?: string | null
           max_discount_percent?: number
           printer_counter_ip?: string | null
           printer_kitchen_ip?: string | null
@@ -2050,11 +2072,114 @@ export type Database = {
           starting_cash?: number
           updated_at?: string
           vat_enabled?: boolean
-          vat_registered?: boolean
           vat_mode?: Database["public"]["Enums"]["vat_mode"]
           vat_rate?: number
+          vat_registered?: boolean
         }
         Relationships: []
+      }
+      shift_close_review_items: {
+        Row: {
+          bill_id: string | null
+          business_day: string
+          created_at: string
+          expected_amount: number | null
+          id: string
+          kind: string
+          manager_note: string | null
+          order_id: string | null
+          payment_methods: Json
+          recorded_amount: number | null
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          shift_id: string
+          snapshot: Json
+          status: string
+          table_id: string | null
+        }
+        Insert: {
+          bill_id?: string | null
+          business_day: string
+          created_at?: string
+          expected_amount?: number | null
+          id?: string
+          kind: string
+          manager_note?: string | null
+          order_id?: string | null
+          payment_methods?: Json
+          recorded_amount?: number | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          shift_id: string
+          snapshot?: Json
+          status?: string
+          table_id?: string | null
+        }
+        Update: {
+          bill_id?: string | null
+          business_day?: string
+          created_at?: string
+          expected_amount?: number | null
+          id?: string
+          kind?: string
+          manager_note?: string | null
+          order_id?: string | null
+          payment_methods?: Json
+          recorded_amount?: number | null
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          shift_id?: string
+          snapshot?: Json
+          status?: string
+          table_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shift_close_review_items_bill_id_fkey"
+            columns: ["bill_id"]
+            isOneToOne: false
+            referencedRelation: "bills"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_close_review_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_close_review_items_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_close_review_items_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "staff_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_close_review_items_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shift_close_review_items_table_id_fkey"
+            columns: ["table_id"]
+            isOneToOne: false
+            referencedRelation: "restaurant_tables"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shifts: {
         Row: {
@@ -2618,6 +2743,10 @@ export type Database = {
           bill_status: Database["public"]["Enums"]["bill_status"]
         }[]
       }
+      finalize_collected_bill_from_state: {
+        Args: { p_bill_id: string }
+        Returns: boolean
+      }
       finish_emergency_menu_price_change: {
         Args: {
           p_error_message?: string
@@ -2627,8 +2756,10 @@ export type Database = {
         Returns: undefined
       }
       get_integrity_status: { Args: never; Returns: Json }
+      get_operational_integrity_issues: { Args: never; Returns: Json }
       get_or_create_bill: { Args: { p_order_id: string }; Returns: string }
       get_shift_close_blockers: { Args: { p_shift_id: string }; Returns: Json }
+      get_shift_close_review_summary: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -2660,6 +2791,15 @@ export type Database = {
       loyalty_discount_for_points: {
         Args: { p_points: number }
         Returns: number
+      }
+      mark_shift_close_reviewed: {
+        Args: {
+          p_note?: string
+          p_resolution: string
+          p_resolved_by: string
+          p_review_id: string
+        }
+        Returns: boolean
       }
       merge_duplicate_members: {
         Args: {
@@ -2722,6 +2862,10 @@ export type Database = {
           new_price: number
           old_price: number
         }[]
+      }
+      prepare_shift_for_nonblocking_close: {
+        Args: { p_shift_id: string }
+        Returns: Json
       }
       process_bill_loyalty: {
         Args: {
