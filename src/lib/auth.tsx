@@ -56,7 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       try {
         const status = await loadPosAccessStatus();
-        if (mounted) setAccessStatus(status);
+        // getSession and INITIAL_SESSION can validate concurrently. Only the
+        // newest response may finish startup or invalidate the device session.
+        if (!mounted || sequence !== validationSequence) return;
+        setAccessStatus(status);
         const remembered = storedSharedAccessVersion();
         if (remembered === null) {
           rememberSharedAccessVersion(status.version);
@@ -65,7 +68,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem(STAFF_KEY);
           setStaffState(null);
           await supabase.auth.signOut({ scope: "local" });
-          if (mounted && sequence === validationSequence) setSession(null);
+          if (mounted && sequence === validationSequence) {
+            setSession(null);
+            setLoading(false);
+          }
           return;
         }
       } catch (error) {
@@ -73,8 +79,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // the app returns to the foreground or at the next periodic check.
         console.warn("Shared access version check failed", error);
       }
-      if (mounted && sequence === validationSequence) setSession(nextSession);
-      if (mounted) setLoading(false);
+      if (mounted && sequence === validationSequence) {
+        setSession(nextSession);
+        setLoading(false);
+      }
     };
 
     const {

@@ -71,3 +71,4 @@ for (let attempt = 0; attempt < 128; attempt += 1) {
 if (passwords.size !== 128) throw new Error("Device credentials must be fresh and random");
 
 console.log("Shared PIN device access contract verified.");
+await import("./test-shared-pin-auth-startup.mjs");
