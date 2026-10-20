@@ -58,7 +58,12 @@ for (let attempt = 0; attempt < 128; attempt += 1) {
   if (bytes < 48 || bytes > 72) {
     throw new Error(`Device credential must use 48-72 UTF-8 bytes; received ${bytes}`);
   }
-  if (!/[a-z]/.test(password) || !/[A-Z]/.test(password) || !/[0-9]/.test(password) || !/[^a-zA-Z0-9]/.test(password)) {
+  if (
+    !/[a-z]/.test(password) ||
+    !/[A-Z]/.test(password) ||
+    !/[0-9]/.test(password) ||
+    !/[^a-zA-Z0-9]/.test(password)
+  ) {
     throw new Error("Device credential must satisfy password character requirements");
   }
   passwords.add(password);
