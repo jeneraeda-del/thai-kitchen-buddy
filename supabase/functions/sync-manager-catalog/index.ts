@@ -184,10 +184,10 @@ Deno.serve(async (req) => {
           Number(item.source.food_cost ?? 0) === 0,
       )
       .map((item: any) => item.source.name_th);
-    const managerLinkedTargets = new Map(
+    const managerLinkedTargets = new Map<string, string>(
       menuPlan
         .filter((item: any) => item.target)
-        .map((item: any) => [item.target.id, item.source.name_th]),
+        .map((item: any): [string, string] => [item.target.id, item.source.name_th]),
     );
     const legacyIngredientCounts = new Map<string, number>();
     for (const row of menuIngredientsResult.data ?? []) {
