@@ -63,7 +63,9 @@ const findOrCreateDeviceUser = async (admin: ReturnType<typeof adminClient>) => 
   if (listError) throw listError;
   const existing = page.users.find((user) => user.email?.toLowerCase() === INTERNAL_DEVICE_EMAIL);
   if (existing) return existing;
-  const randomPassword = `${crypto.randomUUID()}A9!${crypto.randomUUID()}`;
+  // Auth passwords are capped at 72 bytes; dash-free UUIDs keep this at 67 ASCII bytes
+  // while retaining cryptographic randomness and mixed character classes.
+  const randomPassword = `${crypto.randomUUID().replaceAll("-", "")}A9!${crypto.randomUUID().replaceAll("-", "")}`;
   const { data, error } = await admin.auth.admin.createUser({
     email: INTERNAL_DEVICE_EMAIL,
     password: randomPassword,
