@@ -15,6 +15,16 @@ Add new entries at the top using this template:
 - Follow-up: none, or exact remaining work
 ```
 
+## 2026-10-20 — Deliver shared-PIN login recovery and preserve restored sessions
+
+- Agent: Codex
+- Scope: production POS shared-PIN Edge Function, concurrent device-session restoration, deployed web application, and build-enforced executable regression checks.
+- Decision: keep the internal random password within bcrypt's 72-byte limit and let only the latest concurrent startup validation publish access/session/loading state. This prevents a correct PIN from failing on account creation and prevents a restored login from bouncing between `/login` and `/pos` while clearing selected staff.
+- Verification: old credential generation reproducibly fails at 75 bytes; 128 corrected credentials pass length/character/randomness checks. The actual auth callback fails the old concurrency test and passes ordered/reversed responses, stale PIN version, offline startup, sign-out, unmount, and current PIN rotation. Full `npm run build` including `verify:regressions` passes with the frozen Bun lock; targeted ESLint has no errors and one existing React-refresh warning. Production PIN login and OTP verification return HTTP 200; exactly one confirmed internal device account exists. Live browser login as the user-selected staff reaches the real table page, and reload retains the authenticated staff and table page. Browser connection probes still log existing `/auth/v1/health` HTTP 401 responses; no login request fails.
+- Git: production fixes are canonical `origin/main` commits `332d4e8` and `db39f06`; shared guard/tests/delivery evidence are on `codex/fix-shared-pin-device-password-20261020`, canonical PR #85 from the `jeneraeda-del` fork. Isolated sources match current main exactly for both production implementation files.
+- Delivery: only `shared-pin-auth` deployed to `sbjzbphdjfpjvjbzjuzk`; web deployment `40c49edf-d9ce-451a-9a91-3ce4d84d9e39` is live and verified at `https://thai-kitchen-buddy.lovable.app/pos`. Store PIN, schema, business settings, sales, payments, and printing data were not changed; login created the one intended internal auth account. No new Android APK was built: the server password fix applies to v1.1.90 immediately, while the startup client fix is currently delivered to web only. Physical SUNMI login remains unverified.
+- Follow-up: keep the regression PR integrated with the production fixes; if the shop uses native SUNMI and still sees startup redirects, package the client startup fix in the next signed APK.
+
 ## 2026-10-20 — Correct shared-PIN first-device credential length
 
 - Agent: Codex
