@@ -15,6 +15,16 @@ Add new entries at the top using this template:
 - Follow-up: none, or exact remaining work
 ```
 
+## 2026-10-20 — Confirm native SUNMI delivery boundary and production signer
+
+- Agent: Codex
+- Scope: the user confirmed that the photographed device runs the native SUNMI app; verify the signed update path separately from the already deployed server/web fixes.
+- Decision: the server-side 75-to-67-byte credential fix applies immediately to the existing app. The concurrent-startup client fix still requires a correctly signed Android update for SUNMI; do not treat web publication as native delivery.
+- Verification: current published release is `v1.1.90`, asset `LONMOH-POS-v1.1.90.apk`, SHA-256 `810b20f1d40eb775a6246ae9102591b1854f312c4b52ca434ffb75c8007d5c1e`; `apksigner verify --print-certs` passes with signer SHA-256 `301d4796a027c686d9e5b58146e49f6d645448d5ceb9b01279b68272409f39d3`. The available local keystore is readable but has signer SHA-256 `27ff13e0ce9e95101e33459e3c4e72afcbc9547c32249c66d9a9ebf226e40eac`, which does not match. No local ADB device is attached.
+- Git: implementation remains on canonical `main@db39f06`; evidence and regression checks are checkpointed on `codex/fix-shared-pin-device-password-20261020`, PR #85.
+- Delivery: production backend and web verified; no APK built, released or installed in this step, no device data cleared, and no additional production database writes. Native device login awaits the user's retry result.
+- Follow-up: if native startup still redirects, build a version-incremented signed APK from current canonical main using the original production signing key. Confirm its certificate matches the digest above before releasing or installing over the existing POS; retain all device data and verify login plus restart on SUNMI.
+
 ## 2026-10-20 — Deliver shared-PIN login recovery and preserve restored sessions
 
 - Agent: Codex
