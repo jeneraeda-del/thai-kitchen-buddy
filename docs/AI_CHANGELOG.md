@@ -15,6 +15,16 @@ Add new entries at the top using this template:
 - Follow-up: none, or exact remaining work
 ```
 
+## 2026-10-20 — Correct shared-PIN first-device credential length
+
+- Agent: Codex
+- Scope: POS `shared-pin-auth` device-account creation and the build-enforced shared-PIN regression guard.
+- Decision: remove UUID separator characters from the internal random credential, reducing it from 75 to 67 ASCII bytes. Preserve the store PIN, central verification, staff selection, existing accounts, and magic-link session flow.
+- Verification: the new executable regression check reproduces the old 75-byte failure and passes for 128 fresh credentials after the fix; production deployment and login verification are pending at this source checkpoint.
+- Git: `codex/fix-shared-pin-device-password-20261020`; see the commit containing this entry.
+- Delivery: source checkpoint; direct canonical HTTPS push is denied for the connected account, so share through a fork/PR. Backend-only deployment will serve the already installed v1.1.90 without an APK update.
+- Follow-up: deploy the corrected Edge Function, verify one real PIN login and session persistence, and record delivery evidence.
+
 ## 2026-10-20 — Shared device PIN production delivery and Android v1.1.90
 
 - Agent: Codex

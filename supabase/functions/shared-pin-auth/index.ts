@@ -63,7 +63,9 @@ const findOrCreateDeviceUser = async (admin: ReturnType<typeof adminClient>) => 
   if (listError) throw listError;
   const existing = page.users.find((user) => user.email?.toLowerCase() === INTERNAL_DEVICE_EMAIL);
   if (existing) return existing;
-  const randomPassword = `${crypto.randomUUID()}A9!${crypto.randomUUID()}`;
+  // Two UUIDs without separators plus the required character classes: 67
+  // ASCII bytes, below Supabase Auth's 72-byte bcrypt password limit.
+  const randomPassword = `${crypto.randomUUID().replaceAll("-", "")}A9!${crypto.randomUUID().replaceAll("-", "")}`;
   const { data, error } = await admin.auth.admin.createUser({
     email: INTERNAL_DEVICE_EMAIL,
     password: randomPassword,
