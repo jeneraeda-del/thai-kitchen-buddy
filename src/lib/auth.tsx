@@ -56,8 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       try {
         const status = await loadPosAccessStatus();
-        // getSession and INITIAL_SESSION can validate concurrently. Only the
-        // newest response may finish startup or invalidate the device session.
+        // Only the newest concurrent startup validation may publish state;
+        // an older response must not clobber newer validation still in flight.
         if (!mounted || sequence !== validationSequence) return;
         setAccessStatus(status);
         const remembered = storedSharedAccessVersion();

@@ -35,8 +35,7 @@ function harness() {
     validationSequence: 0,
     STAFF_KEY: "pos.activeStaff",
     console: { warn() {} },
-    loadPosAccessStatus: () =>
-      new Promise((resolve, reject) => pending.push({ resolve, reject })),
+    loadPosAccessStatus: () => new Promise((resolve, reject) => pending.push({ resolve, reject })),
     storedSharedAccessVersion: () => 1,
     rememberSharedAccessVersion() {},
     clearSharedAccessVersion() {},
@@ -111,6 +110,17 @@ for (const reason of ["signout", "unmount"]) {
   await check;
   assert.equal(h.state.session, null);
   assert.equal(h.state.changes, 0);
+}
+
+// A current PIN rotation must still invalidate this device and finish loading.
+{
+  const h = harness();
+  const check = h.validate(session);
+  h.pending[0].resolve({ ...status, version: 2 });
+  await check;
+  assert.equal(h.state.signOuts, 1);
+  assert.equal(h.state.session, null);
+  assert.equal(h.state.loading, false);
 }
 
 console.log("Shared-PIN concurrent session startup verified.");
